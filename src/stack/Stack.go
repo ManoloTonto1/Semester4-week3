@@ -11,6 +11,9 @@ type Node[T any] struct {
 }
 
 func (li *Stack[T]) Len() int {
+	if li.head == nil {
+		return 0
+	}
 	if li.head.nextItem == nil {
 		return 1
 	}
@@ -27,7 +30,7 @@ func (li *Stack[T]) GetByIndex(index int) *Node[T] {
 		panic("index out of bounds")
 	}
 	item := li.head
-	for i := 1; i < index; i++ {
+	for i := 0; i < index; i++ {
 		item = item.nextItem
 	}
 	return item
@@ -50,7 +53,7 @@ func (li *Stack[T]) Push(value T) {
 
 func (li *Stack[T]) Pop() {
 
-	SecondLast := li.GetByIndex(li.Len() - 1)
+	SecondLast := li.GetByIndex(li.Len() - 2)
 	SecondLast.nextItem = nil
 }
 func (l *Stack[T]) Show() {
