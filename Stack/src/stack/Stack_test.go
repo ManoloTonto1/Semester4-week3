@@ -98,7 +98,7 @@ func TestGetByIndex_String(t *testing.T) {
 		t.Fail()
 	}
 	if s.GetByIndex(2).data != "!" {
-		t.Fail()	
+		t.Fail()
 	}
 }
 func TestGetByIndex_Float(t *testing.T) {
