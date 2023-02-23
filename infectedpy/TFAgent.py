@@ -182,28 +182,38 @@ class infectedGameEnvironment(py_environment.PyEnvironment):
     def getCoordinatesFromAction(self, action):
         if action == UP:
             return -1, 0
-        elif action == DOWN:
-            return 1, 0
         elif action == LEFT:
             return 0, -1
-        elif action == RIGHT:
-            return 0, 1
         elif action == UP_LEFT:
             return -1, -1
-        elif action == UP_RIGHT:
-            return -1, 1
-        elif action == DOWN_LEFT:
-            return 1, -1
+        
+
         elif action == DOWN_RIGHT:
             return 1, 1
+        elif action == DOWN:
+            return 1, 0
+        elif action == RIGHT:
+            return 0, 1
+        
+
+        elif action == UP_RIGHT:
+            return -1, 1
+        
+        elif action == DOWN_LEFT:
+            return 1, -1
+        
+
         elif action == JUMP_UP:
             return -2, 0
-        elif action == JUMP_DOWN:
-            return 2, 0
         elif action == JUMP_LEFT:
             return 0, -2
+        
+        elif action == JUMP_DOWN:
+            return 2, 0
         elif action == JUMP_RIGHT:
             return 0, 2
+        
+        
         elif action == JUMP_UP_LEFT:
             return -2, -1
         elif action == JUMP_UP_RIGHT:
