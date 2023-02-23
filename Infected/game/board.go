@@ -37,10 +37,10 @@ func (b *Board) CheckMovesPossiblePerInstance(x, y int) []Move {
 	var wg sync.WaitGroup
 	var moves []Move
 
-	wg.Add(25)
 	// Infection
 	for i := -2; i <= 2; i++ {
 		for j := -2; j <= 2; j++ {
+			wg.Add(1)
 			go func(i int, j int) {
 				defer wg.Done()
 				if x == i && y == j {
@@ -98,9 +98,9 @@ func (b *Board) Infect(move Move, player PlayerID, enemy PlayerID) (int, [][]int
 	infectionCount := 0
 	newBoardInstance := make([][]int, len(b.Spaces))
 	copy(newBoardInstance, b.Spaces)
-	wg.Add(9)
 	for i := -1; i <= 1; i++ {
 		for j := -1; j <= 1; j++ {
+			wg.Add(1)
 			go func(i int, j int) {
 				defer wg.Done()
 				if move.To.X == move.From.X && move.To.Y == move.From.Y {
@@ -113,9 +113,9 @@ func (b *Board) Infect(move Move, player PlayerID, enemy PlayerID) (int, [][]int
 					return
 				}
 				if b.Spaces[move.To.X+i][move.To.Y+j] == enemy {
-					infectionCount += 2
+					infectionCount++
 					newBoardInstance[move.To.X+i][move.To.Y+j] = player
-
+					return
 				}
 			}(i, j)
 		}
@@ -128,9 +128,9 @@ func (b *Board) CalculateWeightsPerMove(player PlayerID, enemy PlayerID) (Move, 
 	var wg sync.WaitGroup
 	moves := b.GetPossibleMoves(player)
 	var bestMove Move
-	wg.Add(len(moves))
 
 	for index, move := range moves {
+		wg.Add(1)
 		go func(index int, move Move) {
 			defer wg.Done()
 			weight, newBoardInstance := b.Infect(move, player, enemy)
@@ -153,8 +153,8 @@ func (b *Board) CalculateBestMoveSet(player, enemy PlayerID) Move {
 
 	_, FirstMoves := b.CalculateWeightsPerMove(player, enemy)
 	var bestMovePossible Move
-	wg.Add(len(FirstMoves))
 	for _, move := range FirstMoves {
+		wg.Add(1)
 		go func(move Move) {
 			defer wg.Done()
 			virtualBoard := Board{Spaces: move.boardInstance}
@@ -182,12 +182,26 @@ func DetermineEnemyPlayer(player PlayerID) PlayerID {
 	}
 	return enemyPlayer
 }
-func (b *Board) UpdateInfections(playerID, amount int) {
-	for _, v := range b.Players {
-		if v.ID == playerID {
-			v.Infected += amount
+func (b *Board) UpdateInfections(playerID int) {
+	var wg sync.WaitGroup
+	b.Players[0].Infected = 0
+	b.Players[1].Infected = 0
+	for index, arr := range b.Spaces {
+		for index2 := range arr {
+			wg.Add(1)
+			go func(index int, index2 int) {
+				defer wg.Done()
+				if b.Spaces[index][index2] == playerID {
+					b.Players[0].Infected++
+				}
+
+				if b.Spaces[index][index2] == DetermineEnemyPlayer(playerID) {
+					b.Players[1].Infected++
+				}
+			}(index, index2)
 		}
 	}
+	wg.Wait()
 }
 func (b *Board) Move(player PlayerID, move Move) error {
 	enemyPlayer := DetermineEnemyPlayer(player)
@@ -202,18 +216,16 @@ func (b *Board) Move(player PlayerID, move Move) error {
 		return errors.New("space is not empty")
 	}
 	b.Spaces[move.To.X][move.To.Y] = player
-	b.UpdateInfections(player, 1)
-	
+
 	dy := move.To.Y - move.From.Y
 	dx := move.To.X - move.From.X
 	if dx == -2 || dx == 2 ||
 		dy == -2 || dy == 2 {
-		b.UpdateInfections(player, -1)
 		b.Spaces[move.From.X][move.From.Y] = Empty
 	}
 
-	infections, _ := b.Infect(move, player, enemyPlayer)
-	b.UpdateInfections(player, infections)
-	b.UpdateInfections(enemyPlayer, -infections)
+	b.Infect(move, player, enemyPlayer)
+	b.UpdateInfections(player)
+	b.UpdateInfections(enemyPlayer)
 	return nil
 }
