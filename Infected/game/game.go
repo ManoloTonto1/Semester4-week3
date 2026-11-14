@@ -148,8 +148,8 @@ func (g *Game) Start() {
 	Board := CreateEmptyBoard(9)
 	fmt.Println("------------------")
 	fmt.Println("Choose a game mode:")
-	fmt.Println("1. Console")
-	fmt.Println("2. P vs M")
+	fmt.Println("1. Computer vs Computer")
+	fmt.Println("2. Person vs Computer")
 	fmt.Println("------------------")
 	var gameMode int
 	fmt.Scanln(&gameMode)
